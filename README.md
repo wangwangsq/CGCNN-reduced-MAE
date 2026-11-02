@@ -31,6 +31,21 @@ Key findings:
   runtime, and quantization adds quantize/dequantize overhead. This is reported honestly rather
   than framed as an acceleration.
 
+## Training strategy
+
+- Gated crystal graph convolution (sigmoid gate), residual connections and LayerNorm.
+- Dropout 0.1 in the convolution and regression head.
+- AdamW with 5-epoch warmup and cosine decay.
+- Mixed precision (AMP) on CUDA and gradient clipping at 5.0.
+- Exponential moving average (EMA, decay 0.999) of model weights; the better of the
+  best-validation checkpoint and the EMA model is used for the test set.
+- Early stopping with patience 20.
+- Multi-seed support (`--seeds 42,43`).
+- Per-epoch logs in `results/logs/`.
+
+The results above are a reference run from the 30-epoch, single-seed configuration. The current
+code adds gated convolution and EMA, so a fresh run may differ slightly.
+
 ## Quick start (server)
 
 ```bash

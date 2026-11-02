@@ -20,11 +20,12 @@ This repository is a self-contained AI-for-Science project. When asked to run it
    ```
    Do not start the 5-fold run until the smoke test produces `results/gnn.csv`.
 
-4. Run the full pipeline:
+4. Run the full pipeline (default: 5 folds, 80 epochs, seeds 42 and 43):
    ```bash
    bash run_all.sh 5 80
    ```
-   On a GPU server this should take roughly 30-60 minutes depending on the GPU.
+   On a GPU server this should take roughly 1-2 hours depending on the GPU. For a quicker
+   first pass use `bash run_all.sh 5 40 42` (one seed).
 
 5. Outputs:
    - `results/baselines.csv`

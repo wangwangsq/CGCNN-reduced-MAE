@@ -53,7 +53,7 @@ def main():
     parser.add_argument("--hidden", type=int, default=64)
     parser.add_argument("--layers", type=int, default=3)
     parser.add_argument("--cutoff", type=float, default=4.0)
-    parser.add_argument("--model", default="models/fold0.pt")
+    parser.add_argument("--model", default="models/seed42/fold0.pt")
     parser.add_argument("--out", default="results/efficiency.csv")
     args = parser.parse_args()
 

@@ -20,17 +20,19 @@ Metrics: MAE (primary), R² (secondary). Report mean ± std across folds and see
 | Graph cutoff | 4.0 Å |
 | Node features | element one-hot (100) |
 | Edge features | 40-bin Gaussian RBF |
-| Conv layers | 3 |
+| Conv layers | 3 (gated convolution) |
 | Hidden dim | 64 |
+| Dropout | 0.1 |
 | Batch size | 64 (GPU; can try 128) |
 | Optimizer | AdamW |
 | Learning rate | 1e-3 |
 | Weight decay | 1e-5 |
-| LR schedule | cosine decay (recommended) |
+| LR schedule | 5-epoch warmup + cosine decay |
 | Epochs | 150 |
 | Early stopping | patience 20 on validation MAE |
 | Gradient clipping | 5.0 |
 | AMP | enabled on CUDA |
+| EMA | decay 0.999 |
 | Seeds | 42, 43, 44 |
 
 Server GPU recommendation: any 16 GB+ GPU (RTX 3090/4090, A5000, A100).
@@ -52,35 +54,17 @@ Priority order; stop after E5 if time is limited.
 | E7 (optional) | Static quantization / QAT | compare with dynamic INT8 | fold 0 |
 | E8 (optional) | Error analysis | per chemical family + worst-5 samples | E1 predictions |
 
-## 4. Training-loop refinements
+## 4. Training-loop refinements (implemented)
 
-The current `src/run_gnn.py` already supports folds, epochs, hidden, layers, cutoff, lr,
-batch size and a seed. Before the full server run, add these four items:
+`src/run_gnn.py` now implements:
 
-1. **AMP**:
-```python
-scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
-with torch.cuda.amp.autocast(enabled=use_amp):
-    pred = model(batch)
-    loss = loss_fn(pred, batch.y.view(-1))
-scaler.scale(loss).backward()
-scaler.unscale_(opt)
-torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
-scaler.step(opt)
-scaler.update()
-```
-
-2. **Cosine schedule**:
-```python
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=epochs)
-# after each epoch
-scheduler.step()
-```
-
-3. **Per-epoch logging** to `results/logs/dielectric_fold{fold}_seed{seed}.csv`
-with columns: `epoch, train_mae, val_mae, lr, seconds`.
-
-4. **Checkpointing**: save `best.pt`, `last.pt` and test predictions per fold/seed.
+- gated CGCNN convolution + dropout 0.1;
+- AdamW with 5-epoch warmup and cosine decay;
+- AMP on CUDA with gradient clipping at 5.0;
+- EMA weights (decay 0.999) and selection between best-checkpoint and EMA on validation;
+- early stopping with patience 20;
+- per-epoch logging in `results/logs/seed{seed}_fold{fold}.csv`;
+- multi-seed runs via `--seeds 42,43`.
 
 ## 5. Running on the server
 
