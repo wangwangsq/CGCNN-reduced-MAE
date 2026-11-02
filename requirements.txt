@@ -1,0 +1,12 @@
+# Python 3.11 is recommended.
+# Install torch separately with the CUDA wheel for your server (see setup.sh).
+torch==2.15.0
+torch-geometric==2.8.1
+pymatgen==2026.10.24
+matbench==0.6
+matminer==0.10.1
+pandas==2.3.3
+numpy==2.4.6
+scipy==1.17.1
+scikit-learn==1.9.1
+matplotlib==3.11.2
