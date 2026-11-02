@@ -9,3 +9,6 @@ models/*.npz
 ~$*
 .DS_Store
 Thumbs.db
+results/test*.csv
+results/tuneA*.csv
+results/gnn_smoke.csv

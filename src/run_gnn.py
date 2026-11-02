@@ -70,7 +70,7 @@ def train_one(seed, fold, train_data, val_data, test_data, args, device):
     test_loader = DataLoader(test_data, batch_size=args.batch_size, num_workers=args.num_workers)
 
     model = CGCNN(
-        hidden=args.hidden, layers=args.layers, dropout=args.dropout
+        hidden=args.hidden, layers=args.layers, dropout=args.dropout, gated=args.gated
     ).to(device)
     ema = ModelEMA(model, decay=args.ema_decay)
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
@@ -163,12 +163,16 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", default="matbench_dielectric")
     parser.add_argument("--folds", type=int, default=5)
+    parser.add_argument("--fold", type=int, default=None,
+                        help="run a single fold (overrides --folds)")
     parser.add_argument("--seeds", default="42", help="comma separated, e.g. 42,43,44")
     parser.add_argument("--epochs", type=int, default=80)
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--hidden", type=int, default=64)
     parser.add_argument("--layers", type=int, default=3)
-    parser.add_argument("--dropout", type=float, default=0.1)
+    parser.add_argument("--dropout", type=float, default=0.0)
+    parser.add_argument("--gated", action="store_true",
+                        help="enable the sigmoid gate in the convolution")
     parser.add_argument("--cutoff", type=float, default=4.0)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--weight-decay", type=float, default=1e-5)
@@ -190,7 +194,8 @@ def main():
     task = load_task(args.dataset)
     rows = []
 
-    for fold in list(task.folds)[: args.folds]:
+    fold_list = [args.fold] if args.fold is not None else list(task.folds)[: args.folds]
+    for fold in fold_list:
         train_inputs, train_outputs = task.get_train_and_val_data(fold)
         train_inputs = list(train_inputs)
         y_train = np.asarray(train_outputs, dtype=float)

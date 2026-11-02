@@ -129,19 +129,23 @@ def build_dataset(structures, targets, cutoff: float = 4.0):
 
 
 class ConvLayer(nn.Module):
-    """Gated crystal graph convolution with a residual connection."""
+    """Crystal graph convolution with an optional sigmoid gate and residual."""
 
-    def __init__(self, node_dim: int, edge_dim: int, out_dim: int, dropout: float = 0.1):
+    def __init__(self, node_dim: int, edge_dim: int, out_dim: int,
+                 dropout: float = 0.0, gated: bool = False):
         super().__init__()
         self.fc = nn.Linear(2 * node_dim + edge_dim, out_dim)
-        self.gate = nn.Linear(2 * node_dim + edge_dim, out_dim)
+        self.gated = gated
+        self.gate = nn.Linear(2 * node_dim + edge_dim, out_dim) if gated else None
         self.bn = nn.LayerNorm(out_dim)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x, edge_index, edge_attr):
         src, dst = edge_index
         z = torch.cat([x[src], x[dst], edge_attr], dim=-1)
-        message = F.softplus(self.fc(z)) * torch.sigmoid(self.gate(z))
+        message = F.softplus(self.fc(z))
+        if self.gated:
+            message = message * torch.sigmoid(self.gate(z))
         out = scatter(message, dst, dim=0, dim_size=x.size(0), reduce="mean")
         out = self.dropout(out)
         return F.softplus(self.bn(out + x))
@@ -149,11 +153,12 @@ class ConvLayer(nn.Module):
 
 class CGCNN(nn.Module):
     def __init__(self, edge_dim: int = 40, hidden: int = 64, layers: int = 3,
-                 dropout: float = 0.1):
+                 dropout: float = 0.0, gated: bool = False):
         super().__init__()
         self.embed = nn.Linear(Z_MAX, hidden)
         self.convs = nn.ModuleList(
-            [ConvLayer(hidden, edge_dim, hidden, dropout=dropout) for _ in range(layers)]
+            [ConvLayer(hidden, edge_dim, hidden, dropout=dropout, gated=gated)
+             for _ in range(layers)]
         )
         self.head = nn.Sequential(
             nn.Linear(hidden, hidden), nn.Softplus(),

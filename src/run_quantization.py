@@ -52,6 +52,7 @@ def main():
     parser.add_argument("--fold", type=int, default=0)
     parser.add_argument("--hidden", type=int, default=64)
     parser.add_argument("--layers", type=int, default=3)
+    parser.add_argument("--gated", action="store_true")
     parser.add_argument("--cutoff", type=float, default=4.0)
     parser.add_argument("--model", default="models/seed42/fold0.pt")
     parser.add_argument("--out", default="results/efficiency.csv")
@@ -62,7 +63,7 @@ def main():
     test_data = build_dataset(test_structures, y_test, args.cutoff)
     loader = DataLoader(test_data, batch_size=64)
 
-    model = CGCNN(hidden=args.hidden, layers=args.layers)
+    model = CGCNN(hidden=args.hidden, layers=args.layers, gated=args.gated)
     model.load_state_dict(torch.load(args.model, map_location="cpu"))
     model.eval()
 
