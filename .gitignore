@@ -4,8 +4,8 @@ __pycache__/
 .mplconfig/
 .pytest_cache/
 data/
-models/*.pt
-models/*.npz
+models/
+results/logs/
 ~$*
 .DS_Store
 Thumbs.db

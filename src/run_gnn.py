@@ -1,4 +1,4 @@
-"""Train a gated CGCNN on MatBench with warmup, cosine decay, AMP and EMA."""
+"""Train CGCNN on the official MatBench folds."""
 import argparse
 import copy
 import csv

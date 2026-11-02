@@ -10,7 +10,7 @@ import torch.nn as nn
 from matbench.bench import MatbenchBenchmark
 from torch_geometric.loader import DataLoader
 
-from ai4s_common import CGCNN, build_dataset, evaluate, mae, r2
+from ai4s_common import CGCNN, build_dataset, evaluate
 
 
 def load_task(dataset: str):

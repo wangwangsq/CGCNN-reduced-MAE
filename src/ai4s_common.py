@@ -1,4 +1,4 @@
-"""Shared utilities for the MatBench AI-for-Science project."""
+"""Shared data, featurization, model, and evaluation helpers."""
 import math
 import os
 import random
